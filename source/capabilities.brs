@@ -2,88 +2,75 @@
 ' Creates the capabilities object that is reported to Emby servers
 '******************************************************
 
-Function getDirectPlayProfiles(surroundSound, surroundSoundDCA)
+Function getDirectPlayProfiles()
 
 	profiles = []
 	
 	versionArr = getGlobalVar("rokuVersion")
-	audioContainers = "mp3,wma"
-	
-	if CheckMinimumVersion(versionArr, [5, 3]) then
-		audioContainers = audioContainers + ",flac"
-	end if
-
 	device = CreateObject("roDeviceInfo")
- 	model = left(device.GetModel(),4)
- 	
-	' roku 4 supports apple lossless audio codec
-	if model = "4400" then
-		audioContainers = audioContainers + ",alac"
-	end if
-	  
+
+	audioContainers = "mp3,wma"
+	mp4Audio = "aac,mp3"
+	mp4Video = "h264,mpeg4"
+	mkvAudio = "aac,mp3"
+	mkvVideo = "h264,mpeg4"
+
+	' Call new CanDecodeX functions to check which a/v formats are supported by the device
+	' rather than relying on model numbers and firmware revisions. These checks
+	' rely on Roku firmware v7.0 or greater.  Each codec is checked for container support
+	' as well.
+	' Should be easier to add new supported format checks in a model- and revision-agnostic manner
+	' with this scheme
+
+	' audioContainer support checks
+	if device.CanDecodeAudio({Codec: "flac"}).result then audiocontainers += ",flac"
+	if device.CanDecodeAudio({Codec: "alac"}).result then audiocontainers += ",alac"
+
+	' mp4Audio support checks - commented out eac3 since Emby doesn't distinguish ac3/eac3
+	' by name (only channel count).  If this ever changes, just uncomment those lines
+	if device.CanDecodeAudio({Codec: "ac3", Container: "mp4"}).result then mp4Audio += ",ac3"
+	'if device.CanDecodeAudio({Codec: "eac3", Container: "mp4"}).result then mp4Audio += ",eac3"
+	if device.CanDecodeAudio({Codec: "dts", Container: "mp4"}).result then mp4Audio += ",dca"
+
+	' mkvAudio support checks - same note above applies to eac3
+	if device.CanDecodeAudio({Codec: "ac3", Container: "mkv"}).result then mkvAudio += ",ac3"
+	'if device.CanDecodeAudio({Codec: "eac3", Container: "mp4"}).result then mp4Audio += ",eac3"
+	if device.CanDecodeAudio({Codec: "dts", Container: "mkv"}).result then mkvAudio += ",dca"
+	if device.CanDecodeAudio({Codec: "flac", Container: "mkv"}).result then mkvAudio += ",flac"
+
+	' mkvVideo support checks - these are for hevc/vp9 (4k UHD).  Only the Roku 4 should support
+	' these for now, and only in mkv containers
+	if device.CanDecodeVideo({Codec: "hevc", Container: "mkv"}).result then mkvVideo += ",hevc"
+	if device.CanDecodeVideo({Codec: "vp9", Container: "mkv"}).result then mkvVideo += ",vp9"
+
 	profiles.push({
 		Type: "Audio"
 		Container: audioContainers
 	})
 	
-	mp4Audio = "aac,mp3"
-	
-	if surroundSound then
-		mp4Audio = mp4Audio + ",ac3"
-	end if
-	
-	mp4Video = "h264,mpeg4"
-	
-	' roku 4 has support for hevc and vp9
-	if model = "4400" then
-		mp4Video = mp4Video + ",hevc,vp9"
-	end if
-	  
 	profiles.push({
 		Type: "Video"
 		Container: "mp4,mov,m4v"
 		VideoCodec: "h264,mpeg4"
 		AudioCodec: mp4Audio
 	})
-	
-	mkvAudio = "aac,mp3"
-	
-	mkvVideo = "h264,mpeg4"
-	' roku 4 has support for hevc and vp9
-	if model = "4400" then
-		mkvVideo = mkvVideo + ",hevc,vp9"
-	end if
-	  
-	if CheckMinimumVersion(versionArr, [5, 1]) then
-	
-	if surroundSound then
-            mkvAudio = mkvAudio + ",ac3"
-        end if
-
-        if surroundSoundDCA then
-            mkvAudio = mkvAudio + ",dca"
-        end if
-
-	if CheckMinimumVersion(versionArr, [5, 3]) then
-		mkvAudio = mkvAudio + ",flac"
-	end if
-	
-        profiles.push({
-			Type: "Video"
-			Container: "mkv"
-			VideoCodec: "h264,mpeg4"
-			AudioCodec: mkvAudio
-		})
 		
-	end if
+	profiles.push({
+		Type: "Video"
+		Container: "mkv"
+		VideoCodec: mkvVideo
+		AudioCodec: mkvAudio
+	})
 
 	return profiles
 
 End Function
 
-Function getTranscodingProfiles(surroundSound)
+Function getTranscodingProfiles()
 
 	profiles = []
+	versionArr = getGlobalVar("rokuVersion")
+	device = CreateObject("roDeviceInfo")
 	
 	profiles.push({
 		Type: "Audio"
@@ -93,17 +80,22 @@ Function getTranscodingProfiles(surroundSound)
 		Protocol: "Http"
 	})
 	
-	videoAudioCodec = "mp3,aac"
+	hlsVideoCodec = "h264"
+	hlsAudioCodec = "mp3,aac"
 	
-	if surroundSound then
-		videoAudioCodec = videoAudioCodec + ",ac3"
-	end if
+	' Check audio surround codec support for hls
+	if device.CanDecodeAudio({Codec: "ac3", Container: "hls"}).result then hlsAudioCodec += ",ac3"
+	if device.CanDecodeAudio({Codec: "dts", Container: "hls"}).result then hlsAudioCodec += ",dca"
+
+	' Check video codec support for hls (mostly just checking hevc/vp9 for now)
+	if device.CanDecodeVideo({Codec: "hevc", Container: "hls"}).result then hlsVideoCodec += ",hevc"
+	if device.CanDecodeVideo({Codec: "vp9", Container: "hls"}).result then hlsVideoCodec += ",vp9"
 	
 	profiles.push({
 		Type: "Video"
 		Container: "ts"
-		AudioCodec: videoAudioCodec
-		VideoCodec: "h264"
+		AudioCodec: hlsAudioCodec
+		VideoCodec: hlsVideoCodec
 		Context: "Streaming"
 		Protocol: "Hls"
 	})
@@ -175,69 +167,74 @@ Function getCodecProfiles()
 		IsRequired: false
 	})
 	if playsAnamorphic = false Then
-	h264Conditions.push({
-		Condition: "Equals"
-		Property: "IsAnamorphic"
-		Value: "false"
-		IsRequired: false
-	})
+		h264Conditions.push({
+			Condition: "Equals"
+			Property: "IsAnamorphic"
+			Value: "false"
+			IsRequired: false
+		})
 	end if
 	
-		' roku4 has ability to direct play h265/hevc
-	if model = "4400" then
+	' Check for codec support rather than the old model check
+	' FIX: This still needs to be cleaned up since a Roku4 may still be
+	' connected to a 1080p monitor, meaning transcoding may still be
+	' necessary, but I don't know if the device downscales automatically.
+	if device.CanDecodeVideo({Codec: "hevc"}).result then
+		hevcConditions = []
+		hevcConditions.push({
+			Condition: "LessThanEqual"
+			Property: "Width"
+			Value: max4kWidth
+			IsRequired: true
+		})
+		hevcConditions.push({
+			Condition: "LessThanEqual"
+			Property: "Height"
+			Value: max4kHeight
+			IsRequired: true
+		})
+		hevcConditions.push({
+			Condition: "LessThanEqual"
+			Property: "VideoFramerate"
+			Value: "60"
+			IsRequired: false
+		})
 
-	hevcConditions = []
-	hevcConditions.push({
-		Condition: "LessThanEqual"
-		Property: "Width"
-		Value: max4kWidth
-		IsRequired: true
-	})
-	hevcConditions.push({
-		Condition: "LessThanEqual"
-		Property: "Height"
-		Value: max4kHeight
-		IsRequired: true
-	})
-	hevcConditions.push({
-		Condition: "LessThanEqual"
-		Property: "VideoFramerate"
-		Value: "60"
-		IsRequired: false
-	})
+		profiles.push({
+			Type: "Video"
+			Codec: "hevc"
+			Conditions: hevcConditions
+		})
+	endif 
 	
-	profiles.push({
-		Type: "Video"
-		Codec: "hevc"
-		Conditions: hevcConditions
-	})
+	' Check for vp9 codec support (Roku 4 only so far).  Same note from hevc above
+	' applies here re: FIX
+	if device.CanDecodeVideo({Codec: "vp9"}).result then
+		vp9Conditions = []
+		vp9Conditions.push({
+			Condition: "LessThanEqual"
+			Property: "Width"
+			Value: max4kWidth
+			IsRequired: true
+		})
+		vp9Conditions.push({
+			Condition: "LessThanEqual"
+			Property: "Height"
+			Value: max4kHeight
+			IsRequired: true
+		})
+		vp9Conditions.push({
+			Condition: "LessThanEqual"
+			Property: "VideoFramerate"
+			Value: "30"
+			IsRequired: false
+		})
 
-	' roku4 has ability to direct play vp9 too
-	vp9Conditions = []
-	vp9Conditions.push({
-		Condition: "LessThanEqual"
-		Property: "Width"
-		Value: max4kWidth
-		IsRequired: true
-	})
-	vp9Conditions.push({
-		Condition: "LessThanEqual"
-		Property: "Height"
-		Value: max4kHeight
-		IsRequired: true
-	})
-	vp9Conditions.push({
-		Condition: "LessThanEqual"
-		Property: "VideoFramerate"
-		Value: "30"
-		IsRequired: false
-	})
-
-	profiles.push({
-		Type: "Video"
-		Codec: "vp9"
-		Conditions: vp9Conditions
-	})
+		profiles.push({
+			Type: "Video"
+			Codec: "vp9"
+			Conditions: vp9Conditions
+		})
 	end if ' roku 4
 	
 	profiles.push({
@@ -290,12 +287,12 @@ Function getCodecProfiles()
 		IsRequired: false
 	})
 	if playsAnamorphic = false Then
-	mpeg4Conditions.push({
-		Condition: "Equals"
-		Property: "IsAnamorphic"
-		Value: "false"
-		IsRequired: false
-	})
+		mpeg4Conditions.push({
+			Condition: "Equals"
+			Property: "IsAnamorphic"
+			Value: "false"
+			IsRequired: false
+		})
 	end if
 	
 	profiles.push({
@@ -321,7 +318,10 @@ Function getCodecProfiles()
 		}]
 	})
 	
-	if model = "4400" then
+	' Check to see if the device can decode 6-channel AAC. I think
+	' only the Roku 4 can so far, but this should work on any device
+	' that can (or pass it through) in case that assumption is incorrect.
+	if device.CanDecodeAudio({Codec: "aac", ChCnt: 6}).result then
 		AACchannels = "6"
 	else
 		AACchannels = "2"
@@ -344,19 +344,30 @@ Function getCodecProfiles()
 		}]
 	})
 		
+	' Check to see if the device can decode/pass-through eac3 with 8 channels.
+	' If not, fall back to regular 6-channel ac3 support.
+	if device.CanDecodeAudio({Codec: "eac3", ChCnt: 8}).result then
+		ac3Channels = "8"
+	else
+		ac3Channels = "6"
+	end if
+	
+	' FIX: why is the commented condition here?  Do some Rokus not support
+	' audio stream selection??  It causes ac3 tracks to transcode if they're not
+	' the first streamindex, which goes against the "first track should be aac" thing
 	profiles.push({
 		Type: "VideoAudio"
 		Codec: "ac3"
 		Conditions: [{
-			Condition: "Equals"
-			Property: "IsSecondaryAudio"
-			Value: "false"
-			IsRequired: false
-		},
-		{
+		'	Condition: "Equals"
+		'	Property: "IsSecondaryAudio"
+		'	Value: "false"
+		'	IsRequired: false
+		'},
+		'{
 			Condition: "LessThanEqual"
 			Property: "AudioChannels"
-			Value: "6"
+			Value: ac3Channels
 			IsRequired: false
 		}]
 	})
@@ -431,19 +442,13 @@ Function getDeviceProfile()
 	maxVideoBitrate = firstOf(RegRead("prefVideoQuality"), "3200")
 	maxVideoBitrate = maxVideoBitrate.ToInt() * 1000
 	
-	surroundSound = SupportsSurroundSound(false, false)
-
-	audioOutput51 = getGlobalVar("audioOutput51")
-    surroundSoundDCA = surroundSound AND audioOutput51 'AND (RegRead("fivepointoneDCA", "preferences", "1") = "1")
-    surroundSound = surroundSound AND audioOutput51 'AND (RegRead("fivepointone", "preferences", "1") = "1")
-  
 	profile = {
 		MaxStaticBitrate: "40000000"
 		MaxStreamingBitrate: tostr(maxVideoBitrate)
 		MusicStreamingTranscodingBitrate: "192000"
 		
-		DirectPlayProfiles: getDirectPlayProfiles(surroundSound, surroundSoundDCA)
-		TranscodingProfiles: getTranscodingProfiles(surroundSound)
+		DirectPlayProfiles: getDirectPlayProfiles()
+		TranscodingProfiles: getTranscodingProfiles()
 		CodecProfiles: getCodecProfiles()
 		ContainerProfiles: getContainerProfiles()
 		SubtitleProfiles: getSubtitleProfiles()
