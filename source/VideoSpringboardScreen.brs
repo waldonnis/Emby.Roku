@@ -696,6 +696,7 @@ Sub createStreamSelectionDialog(streamType, audioStreams, subtitleStreams, playO
 
 	for each stream in streams
 
+		if dlg.Buttons.Count() < 5 then
 
 			if streamType = "Subtitle" then
 
