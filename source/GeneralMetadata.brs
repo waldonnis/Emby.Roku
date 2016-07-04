@@ -917,6 +917,7 @@ function getDirector(i as Object, mode as String) as String
 End Function
 
 Sub SetAudioStreamProperties(item as Object)
+	audioCodecs = getGlobalVar("audioCodecs")
 
     ' Get Extension
 	if item.MediaSources = invalid or item.MediaSources.Count() = 0 then return
@@ -934,7 +935,7 @@ Sub SetAudioStreamProperties(item as Object)
 	' Get the version number for checkminimumversion
 	versionArr = getGlobalVar("rokuVersion")
 	
-    ' Direct Playback mp3 and wma(plus flac for firmware 5.3 and above)
+    ' Direct Playback mp3 and wma(plus flac if supported)
     If (container = "mp3") 
         item.Url = GetServerBaseUrl() + "/Audio/" + itemId + "/stream.mp3?static=true"
         item.StreamFormat = "mp3"
@@ -947,7 +948,7 @@ Sub SetAudioStreamProperties(item as Object)
 		item.playMethod = "DirectStream"
 		item.canSeek = true
 		
-    Else If (container = "flac") And CheckMinimumVersion(versionArr, [5, 3])
+    Else If (container = "flac") And audioCodecs.flac
         item.Url = GetServerBaseUrl() + "/Audio/" + itemId + "/stream.flac?static=true"
         item.StreamFormat = "flac"
 		item.playMethod = "DirectStream"
