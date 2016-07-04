@@ -65,104 +65,60 @@ Sub initGlobals()
 
 	GetGlobalAA().AddReplace("rokuUniqueId", device.GetDeviceUniqueId())
 
-	If (major >= 6 and minor >= 1) or major >= 7 Then
-		di = CreateObject("roDeviceInfo")
-		audioDecoders = di.GetAudioDecodeInfo()
-		modelName   = di.GetModelDisplayName()
-		modelNumber = di.GetModel()
+	di = CreateObject("roDeviceInfo")
+	modelName   = di.GetModelDisplayName()
+	modelNumber = di.GetModel()
 
-		' Check for surround sound codecs:
-		hasDolbyDigital = audioDecoders.doesexist("AC3")
-		hasDolbyDTS = audioDecoders.doesexist("DTS")
-		hasDDPlus = audioDecoders.doesexist("DD+")
+	' Audio codec support table
+	' Initially set all to false to establish the entries
+	' Any new audio codecs supported by Roku should be added here
+	' excluding AAC and MP3 since those are supported on every model
+	' and all 7.0+ firmware
+	audioCodecs = {
+		ac3:	false,		' AC-3
+		dts:	false,		' DTS
+		eac3:	false,		' E-AC-3 (DD+)
+		flac:	false,		' flac
+		alac:	false,		' Apple Lossless
+		wma:	false,		' WMA
+		wmapro: false,		' WMA Pro
+		pcm:	false,		' PCM/LPCM
+	}
 
-		if hasDolbyDigital or hasDolbyDTS or hasDDPlus then
-				GetGlobalAA().AddReplace("surroundSound", true)
-			else
-				GetGlobalAA().AddReplace("surroundSound", false)
-		end if
+	' Iterate through codec list and check if they're supported by the Roku
+	for each ac in audioCodecs
+		audioCodecs[ac] = di.CanDecodeAudio({ Codec: tostr(ac) }).result
+		Debug("-- Audio codec support: " + tostr(ac) + " - " + tostr(audioCodecs[ac]))
+	end for 
 
-		GetGlobalAA().AddReplace("audioOutput51", hasDolbyDigital)
-		GetGlobalAA().AddReplace("audioDTS", hasDolbyDTS)
-		GetGlobalAA().AddReplace("audioDDPlus", hasDDPlus)
+	' Store audioCodecs globally
+	GetGlobalAA().AddReplace("audioCodecs", audioCodecs)
+	GetGlobalAA().AddReplace("surroundSound", (audioCodecs.ac3 or audioCodecs.dts or audioCodecs.eac3))
 
-	' Get model name and audio output 
-	else
-		If major > 4 Or (major = 4 And minor >= 8) Then
-			modelName   = device.GetModelDisplayName()
-			modelNumber = device.GetModel()
+	' Video codec support table - So far, UHD (Roku 4 only so far) codecs
+	' Initially set all to false to establish the entries
+	' Any new video codecs supported by Roku should be added here
+	' excluding h264 and mpeg4 since those are supported on every model
+	' and all 7.0+ firmware
+	videoCodecs = {
+		vp9:	false,		' VP9
+		hevc:	false,		' HEVC
+	}
 
-			' Set Audio Output
-			if device.GetAudioOutputChannel() = "5.1 surround"
-				GetGlobalAA().AddReplace("audioOutput51", true)
-			else
-				GetGlobalAA().AddReplace("audioOutput51", false)
-			end if
-		Else
-			modelNumber = device.GetModel()
-			GetGlobalAA().AddReplace("audioOutput51", false)
+	' Iterate through codec list and check if they're supported by the Roku
+	for each vc in videoCodecs
+		videoCodecs[vc] = di.CanDecodeVideo({ Codec: tostr(vc) }).result
+		Debug("-- Video codec support: " + tostr(vc) + " - " + tostr(videoCodecs[vc]))
+	end for 
 
-			models = {}
-			models["N1050"] = "Roku SD"
-			models["N1000"] = "Roku HD Classic"
-			models["N1100"] = "Roku HD Classic"
-			models["2050X"] = "Roku XD"
-			models["2050N"] = "Roku XD"
-			models["N1101"] = "Roku XD|S Classic"
-			models["2100X"] = "Roku XD|S"
-			models["2100N"] = "Roku XD|S"
-			models["2000C"] = "Roku HD"
-			models["2500X"] = "Roku HD"
-			models["2400X"] = "Roku LT"
-			models["2450X"] = "Roku LT"
-			models["2400SK"] = "Now TV"
-			models["2700X"] = "Roku LT (2013)"
-			models["2710X"] = "Roku 1 (2013)"
-			models["2720X"] = "Roku 2 (2013)"
-			models["3000X"] = "Roku 2 HD"
-			models["3050X"] = "Roku 2 XD"
-			models["3100X"] = "Roku 2 XS"
-			models["3400X"] = "Roku Streaming Stick"
-			models["3420X"] = "Roku Streaming Stick"
-			models["3500R"] = "Roku Streaming Stick (2014)"
-			models["4200X"] = "Roku 3"
-			models["4200R"] = "Roku 3"
-			models["4210X"] = "Roku 2 (2015)"
-			models["4210R"] = "Roku 2 (2015)"
-			models["4230X"] = "Roku 3 (2015)"
-			models["4230R"] = "Roku 3 (2015)"
-			models["4400R"] = "Roku 4"
-			models["4400X"] = "Roku 4"
-
-			If models.DoesExist(modelNumber) Then
-				modelName = models[modelNumber]
-			Else
-				modelName = modelNumber
-			End If
-		end if
-		' Check for DTS passthrough support
-		' roku 3 with firmware 5.1 and higher
-		if left(modelNumber,1) = "4" and major >= 5 and minor >= 1
-			GetGlobalAA().AddReplace("audioDTS", true)
-		else
-			GetGlobalAA().AddReplace("audioDTS", false)
-		end if
-
-		' Check to see if the box can support surround sound
-		surroundSound = device.HasFeature("5.1_surround_sound")
-		GetGlobalAA().AddReplace("surroundSound", surroundSound)
-		GetGlobalAA().AddReplace("audioDDPlus", false)
-	End If
+	' Store videoCodecs globally
+	GetGlobalAA().AddReplace("videoCodecs", videoCodecs)
 
 	GetGlobalAA().AddReplace("rokuModelNumber", modelNumber)
 	GetGlobalAA().AddReplace("rokuModelName", modelName)
 
-	' Assume everything below major version of 4.0 To be a legacy device
-	if major < 4
-		GetGlobalAA().AddReplace("legacyDevice", true)
-	else
-		GetGlobalAA().AddReplace("legacyDevice", false)
-	end if
+	' FIXME: hard-coding this to false until all checks in the code are elminated
+	GetGlobalAA().AddReplace("legacyDevice", false)
 
 	' Support for ReFrames seems mixed. These numbers could be wrong, but
 	' there are reports that the Roku 1 can't handle more than 5 ReFrames,

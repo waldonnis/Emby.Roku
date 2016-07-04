@@ -9,39 +9,41 @@ Function getDirectPlayProfiles()
 	versionArr = getGlobalVar("rokuVersion")
 	device = CreateObject("roDeviceInfo")
 
+	audioCodecs = getGlobalVar("audioCodecs")
+	videoCodecs = getGlobalVar("videoCodecs")
+
 	audioContainers = "mp3,wma"
 	mp4Audio = "aac,mp3"
 	mp4Video = "h264,mpeg4"
 	mkvAudio = "aac,mp3"
 	mkvVideo = "h264,mpeg4"
 
-	' Call new CanDecodeX functions to check which a/v formats are supported by the device
-	' rather than relying on model numbers and firmware revisions. These checks
-	' rely on Roku firmware v7.0 or greater.  Each codec is checked for container support
-	' as well.
-	' Should be easier to add new supported format checks in a model- and revision-agnostic manner
-	' with this scheme
-
 	' audioContainer support checks
-	if device.CanDecodeAudio({Codec: "flac"}).result then audiocontainers += ",flac"
-	if device.CanDecodeAudio({Codec: "alac"}).result then audiocontainers += ",alac"
+	if audioCodecs.flac then audiocontainers += ",flac"
+	if audioCodecs.alac then audiocontainers += ",alac"
 
-	' mp4Audio support checks - commented out eac3 since Emby doesn't distinguish ac3/eac3
-	' by name (only channel count).  If this ever changes, just uncomment those lines
-	if device.CanDecodeAudio({Codec: "ac3", Container: "mp4"}).result then mp4Audio += ",ac3"
-	'if device.CanDecodeAudio({Codec: "eac3", Container: "mp4"}).result then mp4Audio += ",eac3"
-	if device.CanDecodeAudio({Codec: "dts", Container: "mp4"}).result then mp4Audio += ",dca"
+	for each acodec in audioCodecs
+		if audioCodecs[acodec] then
+			if device.CanDecodeAudio({Codec: acodec, Container: "mp4"}).result then
+				mp4Audio += "," + tostr(acodec)
+			end if
+			if device.CanDecodeAudio({Codec: acodec, Container: "mkv"}).result then
+				mkvAudio += "," + tostr(acodec)
+			end if
+		end if
+	end for
 
-	' mkvAudio support checks - same note above applies to eac3
-	if device.CanDecodeAudio({Codec: "ac3", Container: "mkv"}).result then mkvAudio += ",ac3"
-	'if device.CanDecodeAudio({Codec: "eac3", Container: "mp4"}).result then mp4Audio += ",eac3"
-	if device.CanDecodeAudio({Codec: "dts", Container: "mkv"}).result then mkvAudio += ",dca"
-	if device.CanDecodeAudio({Codec: "flac", Container: "mkv"}).result then mkvAudio += ",flac"
+	Debug("-- mp4 audio codecs: " + mp4Audio)
+	Debug("-- mkv audio codecs: " + mkvAudio)
 
-	' mkvVideo support checks - these are for hevc/vp9 (4k UHD).  Only the Roku 4 should support
-	' these for now, and only in mkv containers
-	if device.CanDecodeVideo({Codec: "hevc", Container: "mkv"}).result then mkvVideo += ",hevc"
-	if device.CanDecodeVideo({Codec: "vp9", Container: "mkv"}).result then mkvVideo += ",vp9"
+	for each vcodec in videoCodecs
+		if videoCodecs[vcodec] then
+			if device.CanDecodeVideo({Codec: vcodec, Container: "mkv"}).result then
+				mkvVideo += "," + tostr(vcodec)
+			end if
+		end if
+	end for
+	Debug("-- mkv video codecs: " + mkvVideo)
 
 	profiles.push({
 		Type: "Audio"
@@ -72,6 +74,9 @@ Function getTranscodingProfiles()
 	versionArr = getGlobalVar("rokuVersion")
 	device = CreateObject("roDeviceInfo")
 	
+	audioCodecs = getGlobalVar("audioCodecs")
+	videoCodecs = getGlobalVar("videoCodecs")
+
 	profiles.push({
 		Type: "Audio"
 		Container: "mp3"
@@ -83,14 +88,26 @@ Function getTranscodingProfiles()
 	hlsVideoCodec = "h264"
 	hlsAudioCodec = "mp3,aac"
 	
-	' Check audio surround codec support for hls
-	if device.CanDecodeAudio({Codec: "ac3", Container: "hls"}).result then hlsAudioCodec += ",ac3"
-	if device.CanDecodeAudio({Codec: "dts", Container: "hls"}).result then hlsAudioCodec += ",dca"
+	' Check audio codec support for hls
+	for each acodec in audioCodecs
+		if audioCodecs[acodec] then
+			if device.CanDecodeAudio({Codec: acodec, Container: "hls"}).result then
+				hlsAudioCodec += "," + tostr(acodec)
+			end if
+		end if
+	end for
+	Debug("-- hls audio codecs: " + hlsAudioCodec)
 
-	' Check video codec support for hls (mostly just checking hevc/vp9 for now)
-	if device.CanDecodeVideo({Codec: "hevc", Container: "hls"}).result then hlsVideoCodec += ",hevc"
-	if device.CanDecodeVideo({Codec: "vp9", Container: "hls"}).result then hlsVideoCodec += ",vp9"
-	
+	' Check video codec support for hls
+	for each vcodec in videoCodecs
+		if videoCodecs[vcodec] then
+			if device.CanDecodeVideo({Codec: vcodec, Container: "hls"}).result then
+				hlsVideoCodec += "," + tostr(vcodec)
+			end if
+		end if
+	end for
+	Debug("-- hls video codecs: " + hlsVideoCodec)
+
 	profiles.push({
 		Type: "Video"
 		Container: "ts"
@@ -112,6 +129,7 @@ Function getCodecProfiles()
 	playsAnamorphic = firstOf(getGlobalVar("playsAnamorphic"), false)
  	device = CreateObject("roDeviceInfo")
 	model = left(device.GetModel(),4)
+	videoCodecs = getGlobalVar("videoCodecs")
 	
 	maxWidth = "1920"
 	maxHeight = "1080"
@@ -179,7 +197,7 @@ Function getCodecProfiles()
 	' FIX: This still needs to be cleaned up since a Roku4 may still be
 	' connected to a 1080p monitor, meaning transcoding may still be
 	' necessary, but I don't know if the device downscales automatically.
-	if device.CanDecodeVideo({Codec: "hevc"}).result then
+	if videoCodecs.hevc then
 		hevcConditions = []
 		hevcConditions.push({
 			Condition: "LessThanEqual"
@@ -209,7 +227,7 @@ Function getCodecProfiles()
 	
 	' Check for vp9 codec support (Roku 4 only so far).  Same note from hevc above
 	' applies here re: FIX
-	if device.CanDecodeVideo({Codec: "vp9"}).result then
+	if videoCodecs.vp9 then
 		vp9Conditions = []
 		vp9Conditions.push({
 			Condition: "LessThanEqual"
