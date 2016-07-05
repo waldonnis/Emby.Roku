@@ -215,10 +215,10 @@ Function videoPlayerCreateVideoPlayer(item, playOptions)
 	if m.IsTranscoded then
 		m.playMethod = "Transcode"	
 	else
-		addBifInfo(videoItem)
 		m.playMethod = "DirectStream"
 	end if
 	
+	addBifInfo(videoItem)
 	m.canSeek = videoItem.StreamInfo.CanSeek
 	
 	Debug ("Setting PlayStart to " + tostr(playOptions.PlayStart))
