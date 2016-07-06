@@ -194,9 +194,9 @@ Function getCodecProfiles()
 	end if
 	
 	' Check for codec support rather than the old model check
-	' FIX: This still needs to be cleaned up since a Roku4 may still be
-	' connected to a 1080p monitor, meaning transcoding may still be
-	' necessary, but I don't know if the device downscales automatically.
+	' Apparently, the Roku 4 automatically downscales 4k content
+	' if it's not connected to a 4k monitor, so we can use 4k max
+	' width/height vals.
 	if videoCodecs.hevc then
 		hevcConditions = []
 		hevcConditions.push({
@@ -225,8 +225,8 @@ Function getCodecProfiles()
 		})
 	endif 
 	
-	' Check for vp9 codec support (Roku 4 only so far).  Same note from hevc above
-	' applies here re: FIX
+	' Check for vp9 codec support (Roku 4 only so far).
+	' Same note from hevc above
 	if videoCodecs.vp9 then
 		vp9Conditions = []
 		vp9Conditions.push({
@@ -403,17 +403,6 @@ Function getContainerProfiles()
 	versionArr = getGlobalVar("rokuVersion")
     major = versionArr[0]
 
-    if major < 4 then
-		' If everything else looks ok and there are no audio streams, that's
-		' fine on Roku 2+.
-		videoContainerConditions.push({
-			Condition: "NotEquals"
-			Property: "NumAudioStreams"
-			Value: "0"
-			IsRequired: false
-		})
-	end if
-	
 	' Multiple video streams aren't supported, regardless of type.
     videoContainerConditions.push({
 		Condition: "Equals"
