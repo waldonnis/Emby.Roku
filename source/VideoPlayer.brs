@@ -232,7 +232,7 @@ Function videoPlayerCreateVideoPlayer(item, playOptions)
 
 	versionArr = getGlobalVar("rokuVersion")
 	
-    if CheckMinimumVersion(versionArr, [4, 9]) AND videoItem.SubtitleUrl <> invalid then
+    if videoItem.SubtitleUrl <> invalid then
         player.ShowSubtitle(true)
     end if
 	
