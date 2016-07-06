@@ -117,7 +117,7 @@ Sub initGlobals()
 	GetGlobalAA().AddReplace("rokuModelNumber", modelNumber)
 	GetGlobalAA().AddReplace("rokuModelName", modelName)
 
-	' FIXME: hard-coding this to false until all checks in the code are elminated
+	' FIXME: hard-coding this to false until all checks in the code are eliminated
 	GetGlobalAA().AddReplace("legacyDevice", false)
 
 	' Support for ReFrames seems mixed. These numbers could be wrong, but
@@ -146,7 +146,10 @@ Sub initGlobals()
 	GetGlobalAA().AddReplace("displayMode", device.GetDisplayMode())
 	GetGlobalAA().AddReplace("displayType", device.GetDisplayType())
 
-	playsAnamorphic = major > 4 OR (major = 4 AND (minor >= 8 OR device.GetDisplayType() = "HDTV"))
+	' FIXME: hardcode to true until all references are removed
+	' The old test was for firmware revs > 4, which we can guarantee
+	' since we're using SG elements
+	playsAnamorphic = true
 	Debug("Anamorphic support: " + tostr(playsAnamorphic))
 	GetGlobalAA().AddReplace("playsAnamorphic", playsAnamorphic)
 
@@ -165,14 +168,9 @@ End Function
 
 Function SupportsSurroundSound(transcoding=false, refresh=false) As Boolean
 
-	' Before the Roku 3, there's no need to ever refresh.
-	major = getGlobalVar("rokuVersion")[0]
-
 	if m.SurroundSoundTimer = invalid then
 		refresh = true
 		m.SurroundSoundTimer = CreateTimer()
-	else if major <= 4 then
-		refresh = false
 	else if m.SurroundSoundTimer.GetElapsedSeconds() > 10 then
 		refresh = true
 	end if
@@ -186,11 +184,7 @@ Function SupportsSurroundSound(transcoding=false, refresh=false) As Boolean
 		result = getGlobalVar("surroundSound")
 	end if
 
-	if transcoding then
-		return (result AND major >= 4)
-	else
-		return result
-	end if
+	return result
 End Function
 
 Function CheckMinimumVersion(versionArr, requiredVersion) As Boolean
