@@ -718,8 +718,12 @@ Sub createStreamSelectionDialog(streamType, audioStreams, subtitleStreams, playO
 
 				title = UCase(title) + " " + firstOf(stream.ChannelLayout, "")
 
-				' Show stream title if present in addition to the codec/layout
-				if (type(stream.Title) = "String") and (Len(stream.Title) > 0) then
+				' Show stream DisplayTitle if present in addition to the codec/layout
+				' DisplayTitle is only valid on newer server versions, so fall back to the Title field
+				' if DisplayTitle is null.
+				if (type(stream.DisplayTitle) = "String") and (Len(stream.DisplayTitle) > 0) then
+					title = stream.DisplayTitle + " (" + title + ")"
+				else if (type(stream.Title) = "String") and (Len(stream.Title) > 0) then
 					title = stream.Title + " (" + title + ")"
 				end if
 
