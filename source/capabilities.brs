@@ -129,11 +129,24 @@ Function getCodecProfiles()
  	device = CreateObject("roDeviceInfo")
 	model = left(device.GetModel(),4)
 	videoCodecs = getGlobalVar("videoCodecs")
-	
+	hasHDR = getGlobalVar("hasHDR")
+	hdrSupport = getGlobalVar("hdrSupport")
+
 	maxWidth = "1920"
 	maxHeight = "1080"
 	max4kWidth = "3840"
 	max4kHeight = "2160"
+
+	' HDR support check, and increase bit depth accordingly
+	' FIXME: this needs to be worked on more, as the HDR implementations so far
+	' are not compatible and it's not this simple.  Server-side profile checks
+	' will likely be needed to distinguish which method is used in the files and adjust
+	' bit depth for just those files (use hdrSupport AA bools for that)
+	if hasHDR then
+		max4kBitDepth = "10"
+	else
+		max4kBitDepth = "8"
+	end if
 	
 	if getGlobalVar("displayType") <> "HDTV" then
 		maxWidth = "1280"
@@ -183,7 +196,12 @@ Function getCodecProfiles()
 		Value: "50"
 		IsRequired: false
 	})
-	end if
+	
+	profiles.push({
+		Type: "Video"
+		Codec: "h264"
+		Conditions: h264Conditions
+	})
 	
 	' Check for codec support rather than the old model check
 	' Apparently, the Roku 4 automatically downscales 4k content
@@ -191,6 +209,12 @@ Function getCodecProfiles()
 	' width/height vals.
 	if videoCodecs.hevc then
 		hevcConditions = []
+		hevcConditions.push({
+			Condition: "LessThanEqual"
+			Property: "VideoBitDepth"
+			Value: max4kBitDepth
+			IsRequired: false
+		})
 		hevcConditions.push({
 			Condition: "LessThanEqual"
 			Property: "Width"
@@ -223,6 +247,12 @@ Function getCodecProfiles()
 		vp9Conditions = []
 		vp9Conditions.push({
 			Condition: "LessThanEqual"
+			Property: "VideoBitDepth"
+			Value: max4kBitDepth
+			IsRequired: false
+		})
+		vp9Conditions.push({
+			Condition: "LessThanEqual"
 			Property: "Width"
 			Value: max4kWidth
 			IsRequired: true
@@ -246,12 +276,6 @@ Function getCodecProfiles()
 			Conditions: vp9Conditions
 		})
 	end if ' roku 4
-	
-	profiles.push({
-		Type: "Video"
-		Codec: "h264"
-		Conditions: h264Conditions
-	})
 	
 	mpeg4Conditions = []
 	mpeg4Conditions.push({

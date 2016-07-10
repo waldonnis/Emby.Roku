@@ -89,7 +89,7 @@ Sub initGlobals()
 	for each ac in audioCodecs
 		audioCodecs[ac] = di.CanDecodeAudio({ Codec: tostr(ac) }).result
 		Debug("-- Audio codec support: " + tostr(ac) + " - " + tostr(audioCodecs[ac]))
-	end for 
+	end for
 
 	' Store audioCodecs globally
 	GetGlobalAA().AddReplace("audioCodecs", audioCodecs)
@@ -109,10 +109,36 @@ Sub initGlobals()
 	for each vc in videoCodecs
 		videoCodecs[vc] = di.CanDecodeVideo({ Codec: tostr(vc) }).result
 		Debug("-- Video codec support: " + tostr(vc) + " - " + tostr(videoCodecs[vc]))
-	end for 
+	end for
 
 	' Store videoCodecs globally
 	GetGlobalAA().AddReplace("videoCodecs", videoCodecs)
+
+	' HDR method support table - So far, only UHD (Roku 4 only so far) codecs support these
+	' Initially set all to false to establish the entries
+	' Any new HDR methods supported by Roku should be added here
+	hdrSupport = {
+		Hdr10:			false,	' Hdr10
+		DolbyVision:	false,	'Dolby Vision
+	}
+
+	' Generic HDR support indicator
+	hasHDR = false
+
+	' Check for Hdr10 and Dolby Vision (mostly Roku 4 for now) and set global vars
+	' FIXME: Supposedly this can be done with CanDecodeVideo(), but it's weird
+	' and I can't verify the result without a Roku 4 on a 4k monitor that supports it,
+	' so use GetDisplayProperties() for now.
+	for each hdrType in hdrSupport
+		hdrSupport[hdrType] = di.GetDisplayProperties()[hdrType]
+		hasHDR = hasHDR or hdrSupport[hdrType]
+		Debug("-- HDR support: " + tostr(hdrType) + " - " + tostr(hdrSupport[hdrType]))
+	end for
+	Debug("-- HDR support detected: " + tostr(hasHDR))
+
+	' Store hdrSupport and hasHDR globally
+	GetGlobalAA().AddReplace("hdrSupport", hdrSupport)
+	GetGlobalAA().AddReplace("hasHDR", hasHDR)
 
 	GetGlobalAA().AddReplace("rokuModelNumber", modelNumber)
 	GetGlobalAA().AddReplace("rokuModelName", modelName)
