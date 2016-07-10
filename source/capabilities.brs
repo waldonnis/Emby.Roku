@@ -354,19 +354,10 @@ Function getCodecProfiles()
 		ac3Channels = "6"
 	end if
 	
-	' FIX: why is the commented condition here?  Do some Rokus not support
-	' audio stream selection??  It causes ac3 tracks to transcode if they're not
-	' the first streamindex, which goes against the "first track should be aac" thing
 	profiles.push({
 		Type: "VideoAudio"
 		Codec: "ac3"
 		Conditions: [{
-		'	Condition: "Equals"
-		'	Property: "IsSecondaryAudio"
-		'	Value: "false"
-		'	IsRequired: false
-		'},
-		'{
 			Condition: "LessThanEqual"
 			Property: "AudioChannels"
 			Value: ac3Channels
