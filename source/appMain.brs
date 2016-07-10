@@ -69,7 +69,6 @@ Sub initGlobals()
 	modelName   = di.GetModelDisplayName()
 	modelNumber = di.GetModel()
 
-	' Audio codec support table
 	' Initially set all to false to establish the entries
 	' Any new audio codecs supported by Roku should be added here
 	' excluding AAC and MP3 since those are supported on every model
@@ -85,17 +84,7 @@ Sub initGlobals()
 		pcm:	false,		' PCM/LPCM
 	}
 
-	' Iterate through codec list and check if they're supported by the Roku
-	for each ac in audioCodecs
-		audioCodecs[ac] = di.CanDecodeAudio({ Codec: tostr(ac) }).result
-		Debug("-- Audio codec support: " + tostr(ac) + " - " + tostr(audioCodecs[ac]))
-	end for
-
-	' Store audioCodecs globally
-	GetGlobalAA().AddReplace("audioCodecs", audioCodecs)
-	GetGlobalAA().AddReplace("surroundSound", (audioCodecs.ac3 or audioCodecs.dts or audioCodecs.eac3))
-
-	' Video codec support table - So far, UHD (Roku 4 only so far) codecs
+	' So far, UHD (Roku 4 only so far) codecs
 	' Initially set all to false to establish the entries
 	' Any new video codecs supported by Roku should be added here
 	' excluding h264 and mpeg4 since those are supported on every model
@@ -105,7 +94,28 @@ Sub initGlobals()
 		hevc:	false,		' HEVC
 	}
 
-	' Iterate through codec list and check if they're supported by the Roku
+	' So far, only UHD (Roku 4 only so far) codecs support these
+	' Initially set all to false to establish the entries
+	' Any new HDR methods supported by Roku should be added here
+	hdrSupport = {
+		Hdr10:			false,	' Hdr10
+		DolbyVision:	false,	' Dolby Vision
+	}
+
+	' Generic HDR support indicator
+	hasHDR = false
+
+	' Iterate through audio codec list and check if they're supported by the Roku
+	for each ac in audioCodecs
+		audioCodecs[ac] = di.CanDecodeAudio({ Codec: tostr(ac) }).result
+		Debug("-- Audio codec support: " + tostr(ac) + " - " + tostr(audioCodecs[ac]))
+	end for
+
+	' Store audioCodecs globally
+	GetGlobalAA().AddReplace("audioCodecs", audioCodecs)
+	GetGlobalAA().AddReplace("surroundSound", (audioCodecs.ac3 or audioCodecs.dts or audioCodecs.eac3))
+
+	' Iterate through video codec list and check if they're supported by the Roku
 	for each vc in videoCodecs
 		videoCodecs[vc] = di.CanDecodeVideo({ Codec: tostr(vc) }).result
 		Debug("-- Video codec support: " + tostr(vc) + " - " + tostr(videoCodecs[vc]))
@@ -113,17 +123,6 @@ Sub initGlobals()
 
 	' Store videoCodecs globally
 	GetGlobalAA().AddReplace("videoCodecs", videoCodecs)
-
-	' HDR method support table - So far, only UHD (Roku 4 only so far) codecs support these
-	' Initially set all to false to establish the entries
-	' Any new HDR methods supported by Roku should be added here
-	hdrSupport = {
-		Hdr10:			false,	' Hdr10
-		DolbyVision:	false,	'Dolby Vision
-	}
-
-	' Generic HDR support indicator
-	hasHDR = false
 
 	' Check for Hdr10 and Dolby Vision (mostly Roku 4 for now) and set global vars
 	' FIXME: Supposedly this can be done with CanDecodeVideo(), but it's weird
