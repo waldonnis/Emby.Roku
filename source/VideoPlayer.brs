@@ -217,6 +217,8 @@ Function videoPlayerCreateVideoPlayer(item, playOptions)
 	else
 		m.playMethod = "DirectStream"
 	end if
+
+	addBifInfo(videoItem)
 	
 	addBifInfo(videoItem)
 	m.canSeek = videoItem.StreamInfo.CanSeek
