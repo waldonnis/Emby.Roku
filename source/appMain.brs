@@ -69,6 +69,7 @@ Sub initGlobals()
 	modelName   = di.GetModelDisplayName()
 	modelNumber = di.GetModel()
 
+	' --------- Audio codec support AA ---------
 	' Initially set all to false to establish the entries
 	' Any new audio codecs supported by Roku should be added here
 	' excluding AAC and MP3 since those are supported on every model
@@ -84,6 +85,7 @@ Sub initGlobals()
 		pcm:	false,		' PCM/LPCM
 	}
 
+	' --------- Video codec support AA ---------
 	' So far, UHD (Roku 4 only so far) codecs
 	' Initially set all to false to establish the entries
 	' Any new video codecs supported by Roku should be added here
@@ -94,7 +96,8 @@ Sub initGlobals()
 		hevc:	false,		' HEVC
 	}
 
-	' So far, only UHD (Roku 4 only so far) codecs support these
+	' --------- HDR method support AA ---------
+	' High Dynamic Range (10bit) - so far, only UHD (Roku 4 only so far) codecs support these.
 	' Initially set all to false to establish the entries
 	' Any new HDR methods supported by Roku should be added here
 	hdrSupport = {
@@ -102,7 +105,7 @@ Sub initGlobals()
 		DolbyVision:	false,	' Dolby Vision
 	}
 
-	' Generic HDR support indicator
+	' Generic support indicators
 	hasHDR = false
 
 	' Iterate through audio codec list and check if they're supported by the Roku
