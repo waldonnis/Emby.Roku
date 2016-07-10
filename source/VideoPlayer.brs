@@ -220,7 +220,6 @@ Function videoPlayerCreateVideoPlayer(item, playOptions)
 
 	addBifInfo(videoItem)
 	
-	addBifInfo(videoItem)
 	m.canSeek = videoItem.StreamInfo.CanSeek
 	
 	Debug ("Setting PlayStart to " + tostr(playOptions.PlayStart))
