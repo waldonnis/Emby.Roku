@@ -143,13 +143,6 @@ Sub initGlobals()
 	GetGlobalAA().AddReplace("displayMode", device.GetDisplayMode())
 	GetGlobalAA().AddReplace("displayType", device.GetDisplayType())
 
-	' FIXME: hardcode to true until all references are removed
-	' The old test was for firmware revs > 4, which we can guarantee
-	' since we're using SG elements
-	playsAnamorphic = true
-	Debug("Anamorphic support: " + tostr(playsAnamorphic))
-	GetGlobalAA().AddReplace("playsAnamorphic", playsAnamorphic)
-
 	SupportsSurroundSound()
 	
 End Sub

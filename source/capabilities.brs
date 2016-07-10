@@ -126,7 +126,6 @@ Function getCodecProfiles()
 	profiles = []
 
 	maxRefFrames = firstOf(getGlobalVar("maxRefFrames"), 12)
-	playsAnamorphic = firstOf(getGlobalVar("playsAnamorphic"), false)
  	device = CreateObject("roDeviceInfo")
 	model = left(device.GetModel(),4)
 	videoCodecs = getGlobalVar("videoCodecs")
@@ -184,13 +183,6 @@ Function getCodecProfiles()
 		Value: "50"
 		IsRequired: false
 	})
-	if playsAnamorphic = false Then
-		h264Conditions.push({
-			Condition: "Equals"
-			Property: "IsAnamorphic"
-			Value: "false"
-			IsRequired: false
-		})
 	end if
 	
 	' Check for codec support rather than the old model check
@@ -304,14 +296,6 @@ Function getCodecProfiles()
 		Value: "XVID"
 		IsRequired: false
 	})
-	if playsAnamorphic = false Then
-		mpeg4Conditions.push({
-			Condition: "Equals"
-			Property: "IsAnamorphic"
-			Value: "false"
-			IsRequired: false
-		})
-	end if
 	
 	profiles.push({
 		Type: "Video"
