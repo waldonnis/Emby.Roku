@@ -24,10 +24,6 @@ Function CreateListScreen(viewController as Object) As Object
 
 	obj.contentArray = []
 
-    if getGlobalVar("legacyDevice")
-        obj.Screen.SetUpBehaviorAtTopRow("exit")
-    end if
-
     Return obj
 End Function
 

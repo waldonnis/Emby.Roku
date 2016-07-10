@@ -117,9 +117,6 @@ Sub initGlobals()
 	GetGlobalAA().AddReplace("rokuModelNumber", modelNumber)
 	GetGlobalAA().AddReplace("rokuModelName", modelName)
 
-	' FIXME: hard-coding this to false until all checks in the code are eliminated
-	GetGlobalAA().AddReplace("legacyDevice", false)
-
 	' Support for ReFrames seems mixed. These numbers could be wrong, but
 	' there are reports that the Roku 1 can't handle more than 5 ReFrames,
 	' and testing has shown that the video is black beyond that point. The

@@ -390,15 +390,6 @@ Function createMusicListScreen(viewController as Object, tracks As Object) As Ob
 
     screen.SetHeader("Tracks (" + itostr(tracks.Count()) + ") - " + totalDuration)
 
-    if getGlobalVar("legacyDevice")
-        backButton = {
-            Title: ">> Back <<",
-            ContentType: "exit",
-        }
-
-        musicData.Items.Unshift( backButton )
-    end if
-
     screen.SetContent(tracks)
 
     player.SetRepeat(0)

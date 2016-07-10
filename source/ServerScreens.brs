@@ -20,11 +20,6 @@ Function createServerFirstRunSetupScreen(viewController as Object)
 	
     screen.SetButton("gonext", "Next")
 
-    ' Add exit button for legacy devices
-    if getGlobalVar("legacyDevice")
-        screen.SetButton("exit", "Exit Channel")
-    end if
-	
 	screen.HandleButton = handleFirstRunSetupScreenButton
 	
 	return screen

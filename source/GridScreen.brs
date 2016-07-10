@@ -17,18 +17,13 @@ Function CreateGridScreen(viewController as Object, style As String) As Object
     ' Standard properties for all our Screen types
     screen.Screen = grid
 
-    ' Check for legacy devices to provide exit when they have no back Button
     ' Setup loading poster for current devices
-    if getGlobalVar("legacyDevice")
-        upBehavior = "exit"
-    else
-		upBehavior = "stop"
-        if style = "two-row-flat-landscape-custom" then
-            screen.Screen.SetLoadingPoster(viewController.getThemeImageUrl("sd-loading-landscape.jpg"), viewController.getThemeImageUrl("hd-loading-landscape.jpg"))
-        else if style = "mixed-aspect-ratio" then
-            screen.Screen.SetLoadingPoster(viewController.getThemeImageUrl("sd-loading-poster.jpg"), viewController.getThemeImageUrl("hd-loading-poster.jpg"))
-        end if
-    end if
+	upBehavior = "stop"
+	if style = "two-row-flat-landscape-custom" then
+		screen.Screen.SetLoadingPoster(viewController.getThemeImageUrl("sd-loading-landscape.jpg"), viewController.getThemeImageUrl("hd-loading-landscape.jpg"))
+	else if style = "mixed-aspect-ratio" then
+		screen.Screen.SetLoadingPoster(viewController.getThemeImageUrl("sd-loading-poster.jpg"), viewController.getThemeImageUrl("hd-loading-poster.jpg"))
+	end if
 
     ' If we don't know exactly what we're displaying, scale-to-fit looks the
     ' best. Anything else makes something look horrible when the grid has
