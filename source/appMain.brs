@@ -167,6 +167,8 @@ Sub initGlobals()
 	End If
 
 	' Get display information
+	GetGlobalAA().AddReplace("displaySize", device.GetDisplaySize())
+	GetGlobalAA().AddReplace("displayMode", device.GetDisplayMode())
 	GetGlobalAA().AddReplace("displayType", device.GetDisplayType())
 
 	SupportsSurroundSound()
