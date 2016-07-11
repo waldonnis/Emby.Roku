@@ -127,7 +127,7 @@ Function getCodecProfiles()
 
 	maxRefFrames = firstOf(getGlobalVar("maxRefFrames"), 12)
  	device = CreateObject("roDeviceInfo")
-	model = left(device.GetModel(),4)
+	displaySize = getGlobalVar("displaySize")
 	videoCodecs = getGlobalVar("videoCodecs")
 	hasHDR = getGlobalVar("hasHDR")
 	hdrSupport = getGlobalVar("hdrSupport")
@@ -136,6 +136,11 @@ Function getCodecProfiles()
 	maxHeight = "1080"
 	max4kWidth = "3840"
 	max4kHeight = "2160"
+
+	if getGlobalVar("displayType") <> "HDTV" then
+		maxWidth = displaySize.w
+		maxHeight = displaySize.h
+	end if
 
 	' HDR support check, and increase bit depth accordingly
 	' FIXME: this needs to be worked on more, as the HDR implementations so far
@@ -155,11 +160,6 @@ Function getCodecProfiles()
 		max4kBitDepth = "8"
 	end if
 	
-	if getGlobalVar("displayType") <> "HDTV" then
-		maxWidth = "1280"
-		maxHeight = "720"
-	end if
-
 	h264Conditions = []
 	h264Conditions.push({
 		Condition: "LessThanEqual"
