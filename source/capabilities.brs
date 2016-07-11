@@ -143,7 +143,11 @@ Function getCodecProfiles()
 	' will likely be needed to distinguish which method is used in the files and adjust
 	' bit depth for just those files (use hdrSupport AA bools for that)
 	if hasHDR then
-		max4kBitDepth = "10"
+		if hdrSupport.DolbyVision then
+			max4kBitDepth = "12"
+		else
+			max4kBitDepth = "10"
+		end if
 	else
 		max4kBitDepth = "8"
 	end if
