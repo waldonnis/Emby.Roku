@@ -141,7 +141,10 @@ Function getCodecProfiles()
 	' FIXME: this needs to be worked on more, as the HDR implementations so far
 	' are not compatible and it's not this simple.  Server-side profile checks
 	' will likely be needed to distinguish which method is used in the files and adjust
-	' bit depth for just those files (use hdrSupport AA bools for that)
+	' bit depth for just those files (use hdrSupport AA bools for that).
+	' Dolby Vision supports 12bpp colour, but I'm not sure the Roku does yet.  Docs
+	' indicate that it may just support 10bpp (GetVideoMode() return values), but including
+	' 12bpp capabilities until we can confirm it one way or the other.
 	if hasHDR then
 		if hdrSupport.DolbyVision then
 			max4kBitDepth = "12"
