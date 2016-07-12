@@ -27,10 +27,10 @@ Function getDirectPlayProfiles()
 	for each acodec in audioCodecs
 		if audioCodecs[acodec] then
 			if device.CanDecodeAudio({Codec: acodec, Container: "mp4"}).result then
-				mp4Audio += "," + renameDTS(tostr(acodec), "dca")
+				mp4Audio += "," + renameDTS.Replace(tostr(acodec), "dca")
 			end if
 			if device.CanDecodeAudio({Codec: acodec, Container: "mkv"}).result then
-				mkvAudio += "," + renameDTS(tostr(acodec), "dca")
+				mkvAudio += "," + renameDTS.Replace(tostr(acodec), "dca")
 			end if
 		end if
 	end for
