@@ -12,6 +12,8 @@ Function getDirectPlayProfiles()
 	audioCodecs = getGlobalVar("audioCodecs")
 	videoCodecs = getGlobalVar("videoCodecs")
 
+	renameDTS = CreateObject("roRegex", "^dts$", "")
+
 	audioContainers = "mp3,wma"
 	mp4Audio = "aac,mp3"
 	mp4Video = "h264,mpeg4"
@@ -25,10 +27,10 @@ Function getDirectPlayProfiles()
 	for each acodec in audioCodecs
 		if audioCodecs[acodec] then
 			if device.CanDecodeAudio({Codec: acodec, Container: "mp4"}).result then
-				mp4Audio += "," + tostr(acodec)
+				mp4Audio += "," + renameDTS(tostr(acodec), "dca")
 			end if
 			if device.CanDecodeAudio({Codec: acodec, Container: "mkv"}).result then
-				mkvAudio += "," + tostr(acodec)
+				mkvAudio += "," + renameDTS(tostr(acodec), "dca")
 			end if
 		end if
 	end for
@@ -77,6 +79,8 @@ Function getTranscodingProfiles()
 	audioCodecs = getGlobalVar("audioCodecs")
 	videoCodecs = getGlobalVar("videoCodecs")
 
+	renameDTS = CreateObject("roRegex", "^dts$", "")
+
 	profiles.push({
 		Type: "Audio"
 		Container: "mp3"
@@ -92,7 +96,7 @@ Function getTranscodingProfiles()
 	for each acodec in audioCodecs
 		if audioCodecs[acodec] then
 			if device.CanDecodeAudio({Codec: acodec, Container: "hls"}).result then
-				hlsAudioCodec += "," + tostr(acodec)
+				hlsAudioCodec += "," + renameDTS(tostr(acodec), "dca")
 			end if
 		end if
 	end for
