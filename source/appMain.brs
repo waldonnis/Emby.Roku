@@ -160,6 +160,7 @@ Sub initGlobals()
 	end if
 
 	' Check if HDTV screen
+	' FIXME: Remove this once screensaver.brs stops using it
 	If device.GetDisplayType() = "HDTV" Then
 		GetGlobalAA().AddReplace("isHD", true)
 	Else
