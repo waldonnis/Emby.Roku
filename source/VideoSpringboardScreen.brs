@@ -704,7 +704,7 @@ Sub createStreamSelectionDialog(streamType, audioStreams, subtitleStreams, playO
 
 				' Append (F) to denote a forced subtitle stream
 				if stream.isForced then
-					title += " (F)"
+					title = title + " (F)"
 				end if
 			elseif streamType = "Audio"
 				' Show stream title (if present), codec, channel layout and
@@ -727,7 +727,7 @@ Sub createStreamSelectionDialog(streamType, audioStreams, subtitleStreams, playO
 					title = stream.Title + " (" + title + ")"
 				end if
 
-				title += " [" + firstof(stream.Language, "Unknown language") + "]"
+				title = title + " [" + firstof(stream.Language, "Unknown language") + "]"
 			end if
 
 			if currentIndex = stream.Index then title = title + " [Selected]"

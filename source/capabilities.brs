@@ -21,16 +21,16 @@ Function getDirectPlayProfiles()
 	mkvVideo = "h264,mpeg4"
 
 	' audioContainer support checks
-	if audioCodecs.flac then audiocontainers += ",flac"
-	if audioCodecs.alac then audiocontainers += ",alac"
+	if audioCodecs.flac then audiocontainers = audiocontainers + ",flac"
+	if audioCodecs.alac then audiocontainers = audiocontainers + ",alac"
 
 	for each acodec in audioCodecs
 		if audioCodecs[acodec] then
 			if device.CanDecodeAudio({Codec: acodec, Container: "mp4"}).result then
-				mp4Audio += "," + renameDTS.Replace(tostr(acodec), "dca")
+				mp4Audio = mp4Audio + "," + renameDTS.Replace(tostr(acodec), "dca")
 			end if
 			if device.CanDecodeAudio({Codec: acodec, Container: "mkv"}).result then
-				mkvAudio += "," + renameDTS.Replace(tostr(acodec), "dca")
+				mkvAudio = mkvAudio + "," + renameDTS.Replace(tostr(acodec), "dca")
 			end if
 		end if
 	end for
@@ -41,7 +41,7 @@ Function getDirectPlayProfiles()
 	for each vcodec in videoCodecs
 		if videoCodecs[vcodec] then
 			if device.CanDecodeVideo({Codec: vcodec, Container: "mkv"}).result then
-				mkvVideo += "," + tostr(vcodec)
+				mkvVideo = mkvVideo + "," + tostr(vcodec)
 			end if
 		end if
 	end for
@@ -96,7 +96,7 @@ Function getTranscodingProfiles()
 	for each acodec in audioCodecs
 		if audioCodecs[acodec] then
 			if device.CanDecodeAudio({Codec: acodec, Container: "hls"}).result then
-				hlsAudioCodec += "," + renameDTS(tostr(acodec), "dca")
+				hlsAudioCodec = hlsAudioCodec + "," + renameDTS(tostr(acodec), "dca")
 			end if
 		end if
 	end for
@@ -106,7 +106,7 @@ Function getTranscodingProfiles()
 	for each vcodec in videoCodecs
 		if videoCodecs[vcodec] then
 			if device.CanDecodeVideo({Codec: vcodec, Container: "hls"}).result then
-				hlsVideoCodec += "," + tostr(vcodec)
+				hlsVideoCodec = hlsVideoCodec + "," + tostr(vcodec)
 			end if
 		end if
 	end for
